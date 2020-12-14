@@ -9,47 +9,52 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Paso previo
+# Pasos previos
 
-```{r}
+## Paquetes
+
+```{r, message=FALSE}
 ## Se cargan los paquetes necesarios para la actividad
 library(tidyverse)
 ```
+
+## Base de datos
 
 Importar la base [**ene-2019-11.csv**](https://www.ine.cl/docs/default-source/ocupacion-y-desocupacion/bbdd/2019/formato-csv/ene-2019-11.csv?sfvrsn=6f231878_6&download=true). 
 
 ```{r}
 ## La base se descarga y se guarda en la carpeta de "inputs" llamada "data" 
 ene <- read.csv(file = "data/ene-2019-11.csv")
-
-## El ejercicio no es del todo correcto si la lectura de la base solo funciona 
-# desde la computadora de quien hizo la tarea.
-
 ```
+
+El ejercicio no es del todo correcto si la lectura de la base solo funciona desde la computadora de quien hizo la tarea.
+
 
 Las siguientes tareas realicelas sobre la base ene.
 
 # Ejercicio 1
+
 Generar un cuadro de resumen que muestre en las filas la categoría de rama de actividad económica (**b14_rev4cl_canes**) y en las columnas los grupos ocupacionales (**b1**).
 
 ```{r}
 # Se agrupa por las dos variables, generando conteo
-cuadro<-ene %>% group_by(b14_rev4cl_caenes,b1) %>% tally()
-cuadro %>% head(10)
+ej1 <- ene %>%
+  group_by(b14_rev4cl_caenes, b1) %>% 
+  count()
+
+## Se previsualiza el objeto
+ej1 %>% 
+  head(10)
 
 # Se aplica pivet_wider() a objeto cuadro
-cuadro %>% 
+ej1 <- ej1 %>% 
   pivot_wider(names_from = b14_rev4cl_caenes,
                       names_prefix = "b1_" ,
-                       values_from = n) %>% 
-  
-  kableExtra::kable(caption = "Cuadro 1",  # Ignorar esta parte, es solo para mejorar visualización en pdf.
+                       values_from = n) 
 
-      digits = 2, format.args = list( decimal.mark = ",",big.mark = "."),booktabs = T) %>% # Lo mismo
-kableExtra::kable_styling(latex_options = c("scale_down","hold_position"))                 # Lo mismo
-
+## Se despliega el objeto
+ej1
 ```
-
 
 # Ejercicio 2
 
@@ -59,67 +64,63 @@ Cree las siguientes variables:
 
 ```{r}
 ## Se observa distribución de variable
-table(ene$edad)
+table(ene$edad, useNA = "ifany")
 
 ## Se recodifica con mutate() e if_else()
-ene %>% mutate(pet=if_else(edad>=15,1,0)) %>% select(pet) %>% sum()
+ej2 <- ene %>% 
+  mutate(pet=if_else(edad>=15,1,0)) 
 
-ene<-ene %>% mutate(pet=if_else(edad>=15,1,0)) 
-table(ene$pet)
-
+## Se despliega la tabla
+table(ej2$pet, useNA = "ifany")
 ```
 
 + **ocu**: que tome el valor 1 si la variable cae_especifico se encuentra en el rango (extremos incluidos) entre 1 y 7, y que tome el valor 0 en cualquier otro caso.
 
 ```{r}
+## Se observa distribución de variable
+table(ej2$cae_especifico, useNA = "ifany")
 
-table(ene$cae_especifico,useNA = "ifany")
+## Se recodifica con mutate() y case_when(), para variar
+ej2 <- ej2 %>% 
+  mutate(ocu=case_when(cae_especifico>=1 & cae_especifico<=7 ~ 1,
+                       TRUE~0))
 
-## Para varias se utilizará case_when()
-ene<-ene %>% mutate(ocu=case_when(cae_especifico>=1 & cae_especifico<=7 ~ 1,
-                             TRUE~0))
-
-table(ene$ocu,useNA = "ifany")
-
+## Se despliega la tabla
+table(ej2$ocu, useNA = "ifany")
 ```
-
 
 # Ejercicio 3
 
 Genere un cuadro de resumen agrupado por región que muestre el total de la variable **pet** y el total de la variable **ocu**.
 
-```{r}
+```{r, message=FALSE}
 
-cuadro2<-ene %>% group_by(pet,ocu) %>% tally() %>% as.data.frame()## Solo correr esta línea. El resto es visualización.
+## Se agrupa según variable
+ej3 <- ej2 %>% 
+  group_by(region) %>%
+  summarise(pet_total = sum(pet),
+            ocu_total = sum(ocu)) %>% 
+  select(region, pet_total, ocu_total)
 
-
-a<-c("Menores de 15 y no ocupados","15 o más años y no ocupados","15 o más años y ocupados")
-rownames(cuadro2)<-a
-
-cuadro2 %>% 
-  kableExtra::kable(caption = "Cuadro 2", 
-
-      digits = 2, format.args = list( decimal.mark = ",",big.mark = "."),booktabs = T) %>% 
-kableExtra::kable_styling(latex_options = c("hold_position"))   
-
+## Se despliega el objeto
+ej3
 ```
-
 
 # Ejercicio 4
 
 Sobre el cuadro de resumen del punto anterior, cree la variable **to**, que tomará el valor de: total de ocu / total de pet * 100
 
-```{r}
+```{r,  message=FALSE}
+## Se crea la nueva variable
+ej4 = ej3 %>% 
+  mutate(to = ocu_total/pet_total*100)
 
-cuadro2 %>% 
-  pivot_wider(names_from = c(pet,ocu),names_prefix = "x",values_from = n) %>% 
-  mutate(to=x1_1/(x1_0+x1_1))
-
+## Se despliega el objeto
+ej4
 ```
-
 
 (De esta forma se obtiene la tasa de ocupación, pero no será equivalente a la oficial pues no se están considerando los factores de expansión.).
 
 # Sobre el envío
 
-Enviar a más tardar el día jueves 17 de diciembre a las 17:00. Enviar ejercicios como archivo .R (script) con nombre y apellido de quien hizo la tarea a los correos `nicolas.ratto@ine.cl` y `gonzalo.franetovic@ine.cl`.
+Enviar a más tardar el día jueves 17 de diciembre a las 17:00. Los ejercicios se deben enviar como archivo .R (script) con nombre y apellido de quien hizo la tarea a los correos `nicolas.ratto@ine.cl` y `gonzalo.franetovic@ine.cl`.
