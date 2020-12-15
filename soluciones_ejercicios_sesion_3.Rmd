@@ -1,8 +1,10 @@
 ---
-title: "Ejercicios - Sesión 3"
-author: "Capacitadores R en DET"
-date: "14-12-2020"
+title: "Solución ejercicios - Sesión 3"
+subtitle: "Capacitación en R"
+author: "Capacitadores DET, en base a PE SCPE"
 output: pdf_document
+header-includes:
+- \usepackage[fontsize=11.8pt]{scrextend}
 ---
 
 ```{r setup, include=FALSE}
@@ -27,7 +29,7 @@ Importar la base [**ene-2019-11.csv**](https://www.ine.cl/docs/default-source/oc
 ene <- read.csv(file = "data/ene-2019-11.csv")
 ```
 
-El ejercicio no es del todo correcto si la lectura de la base solo funciona desde la computadora de quien hizo la tarea.
+*El ejercicio no es del todo correcto si la lectura de la base solo funciona desde la computadora de quien hizo la tarea.*
 
 
 Las siguientes tareas realicelas sobre la base ene.
@@ -119,7 +121,7 @@ ej4 = ej3 %>%
 ej4
 ```
 
-(De esta forma se obtiene la tasa de ocupación, pero no será equivalente a la oficial pues no se están considerando los factores de expansión.).
+*De esta forma se obtiene la tasa de ocupación, pero no será equivalente a la oficial pues no se están considerando los factores de expansión.*
 
 # Sobre el envío
 
